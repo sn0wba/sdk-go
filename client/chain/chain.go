@@ -16,8 +16,6 @@ import (
 	"time"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	exchangetypes "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
-	"github.com/InjectiveLabs/sdk-go/client/common"
 	log "github.com/InjectiveLabs/suplog"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -28,8 +26,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	eth "github.com/ethereum/go-ethereum/common"
-	"github.com/gogo/protobuf/proto"
+	"github.com/gotabit/sdk-go/client/common"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc"
@@ -72,25 +69,6 @@ type ChainClient interface {
 	GetAccount(ctx context.Context, address string) (*authtypes.QueryAccountResponse, error)
 
 	BuildGenericAuthz(granter string, grantee string, msgtype string, expireIn time.Time) *authztypes.MsgGrant
-	BuildExchangeAuthz(granter string, grantee string, authzType ExchangeAuthz, subaccountId string, markets []string, expireIn time.Time) *authztypes.MsgGrant
-	BuildExchangeBatchUpdateOrdersAuthz(
-		granter string,
-		grantee string,
-		subaccountId string,
-		spotMarkets []string,
-		derivativeMarkets []string,
-		expireIn time.Time,
-	) *authztypes.MsgGrant
-
-	DefaultSubaccount(acc cosmtypes.AccAddress) eth.Hash
-
-	GetSubAccountNonce(ctx context.Context, subaccountId eth.Hash) (*exchangetypes.QuerySubaccountTradeNonceResponse, error)
-	GetFeeDiscountInfo(ctx context.Context, account string) (*exchangetypes.QueryFeeDiscountAccountInfoResponse, error)
-	ComputeOrderHashes(spotOrders []exchangetypes.SpotOrder, derivativeOrders []exchangetypes.DerivativeOrder) (OrderHashes, error)
-
-	SpotOrder(defaultSubaccountID eth.Hash, network common.Network, d *SpotOrderData) *exchangetypes.SpotOrder
-	DerivativeOrder(defaultSubaccountID eth.Hash, network common.Network, d *DerivativeOrderData) *exchangetypes.DerivativeOrder
-	OrderCancel(defaultSubaccountID eth.Hash, d *OrderCancelData) *exchangetypes.OrderData
 
 	SmartContractState(
 		ctx context.Context,
@@ -127,12 +105,11 @@ type chainClient struct {
 	sessionCookie  string
 	sessionEnabled bool
 
-	txClient            txtypes.ServiceClient
-	authQueryClient     authtypes.QueryClient
-	exchangeQueryClient exchangetypes.QueryClient
-	bankQueryClient     banktypes.QueryClient
-	authzQueryClient    authztypes.QueryClient
-	wasmQueryClient     wasmtypes.QueryClient
+	txClient         txtypes.ServiceClient
+	authQueryClient  authtypes.QueryClient
+	bankQueryClient  banktypes.QueryClient
+	authzQueryClient authztypes.QueryClient
+	wasmQueryClient  wasmtypes.QueryClient
 
 	closed  int64
 	canSign bool
@@ -192,12 +169,11 @@ func NewChainClient(
 
 		sessionEnabled: stickySessionEnabled,
 
-		txClient:            txtypes.NewServiceClient(conn),
-		authQueryClient:     authtypes.NewQueryClient(conn),
-		exchangeQueryClient: exchangetypes.NewQueryClient(conn),
-		bankQueryClient:     banktypes.NewQueryClient(conn),
-		authzQueryClient:    authztypes.NewQueryClient(conn),
-		wasmQueryClient:     wasmtypes.NewQueryClient(conn),
+		txClient:         txtypes.NewServiceClient(conn),
+		authQueryClient:  authtypes.NewQueryClient(conn),
+		bankQueryClient:  banktypes.NewQueryClient(conn),
+		authzQueryClient: authztypes.NewQueryClient(conn),
+		wasmQueryClient:  wasmtypes.NewQueryClient(conn),
 	}
 
 	if cc.canSign {
@@ -439,13 +415,6 @@ func (c *chainClient) SyncBroadcastMsg(msgs ...sdk.Msg) (*txtypes.BroadcastTxRes
 	return res, nil
 }
 
-func (c *chainClient) GetFeeDiscountInfo(ctx context.Context, account string) (*exchangetypes.QueryFeeDiscountAccountInfoResponse, error) {
-	req := &exchangetypes.QueryFeeDiscountAccountInfoRequest{
-		Account: account,
-	}
-	return c.exchangeQueryClient.FeeDiscountAccountInfo(ctx, req)
-}
-
 func (c *chainClient) SimulateMsg(clientCtx client.Context, msgs ...sdk.Msg) (*txtypes.SimulateResponse, error) {
 	c.txFactory = c.txFactory.WithSequence(c.accSeq)
 	c.txFactory = c.txFactory.WithAccountNumber(c.accNum)
@@ -473,9 +442,9 @@ func (c *chainClient) SimulateMsg(clientCtx client.Context, msgs ...sdk.Msg) (*t
 	return simRes, nil
 }
 
-//AsyncBroadcastMsg sends Tx to chain and doesn't wait until Tx is included in block. This method
-//cannot be used for rapid Tx sending, it is expected that you wait for transaction status with
-//external tools. If you want sdk to wait for it, use SyncBroadcastMsg.
+// AsyncBroadcastMsg sends Tx to chain and doesn't wait until Tx is included in block. This method
+// cannot be used for rapid Tx sending, it is expected that you wait for transaction status with
+// external tools. If you want sdk to wait for it, use SyncBroadcastMsg.
 func (c *chainClient) AsyncBroadcastMsg(msgs ...sdk.Msg) (*txtypes.BroadcastTxResponse, error) {
 	c.syncMux.Lock()
 	defer c.syncMux.Unlock()
@@ -604,8 +573,8 @@ func (c *chainClient) broadcastTx(
 	}
 }
 
-//QueueBroadcastMsg enqueues a list of messages. Messages will added to the queue
-//and grouped into Txns in chunks. Use this method to mass broadcast Txns with efficiency.
+// QueueBroadcastMsg enqueues a list of messages. Messages will added to the queue
+// and grouped into Txns in chunks. Use this method to mass broadcast Txns with efficiency.
 func (c *chainClient) QueueBroadcastMsg(msgs ...sdk.Msg) error {
 	if !c.canSign {
 		return ErrReadOnly
@@ -700,7 +669,7 @@ func (c *chainClient) runBatchBroadcast() {
 }
 
 func (c *chainClient) GetGasFee() (string, error) {
-	gasPrices := strings.Trim(c.opts.GasPrices, "inj")
+	gasPrices := strings.Trim(c.opts.GasPrices, "ugtb")
 
 	gas, err := strconv.ParseFloat(gasPrices, 64)
 
@@ -713,15 +682,6 @@ func (c *chainClient) GetGasFee() (string, error) {
 	c.gasFee = gasFeeFormatted
 
 	return c.gasFee, err
-}
-
-func (c *chainClient) DefaultSubaccount(acc cosmtypes.AccAddress) eth.Hash {
-	return eth.BytesToHash(eth.RightPadBytes(acc.Bytes(), 32))
-}
-
-func (c *chainClient) GetSubAccountNonce(ctx context.Context, subaccountId eth.Hash) (*exchangetypes.QuerySubaccountTradeNonceResponse, error) {
-	req := &exchangetypes.QuerySubaccountTradeNonceRequest{SubaccountId: subaccountId.String()}
-	return c.exchangeQueryClient.SubaccountTradeNonce(ctx, req)
 }
 
 func formatPriceToTickSize(value, tickSize cosmtypes.Dec) cosmtypes.Dec {
@@ -772,64 +732,6 @@ func GetDerivativePrice(value, tickSize cosmtypes.Dec) cosmtypes.Dec {
 	return realValue
 }
 
-func (c *chainClient) SpotOrder(defaultSubaccountID eth.Hash, network common.Network, d *SpotOrderData) *exchangetypes.SpotOrder {
-
-	baseDecimals := common.LoadMetadata(network, d.MarketId).Base
-	quoteDecimals := common.LoadMetadata(network, d.MarketId).Quote
-	minPriceTickSize := common.LoadMetadata(network, d.MarketId).MinPriceTickSize
-	minQuantityTickSize := common.LoadMetadata(network, d.MarketId).MinQuantityTickSize
-
-	orderSize := GetSpotQuantity(d.Quantity, cosmtypes.MustNewDecFromStr(strconv.FormatFloat(minQuantityTickSize, 'f', -1, 64)), baseDecimals)
-	orderPrice := GetSpotPrice(d.Price, baseDecimals, quoteDecimals, cosmtypes.MustNewDecFromStr(strconv.FormatFloat(minPriceTickSize, 'f', -1, 64)))
-
-	return &exchangetypes.SpotOrder{
-		MarketId:  d.MarketId,
-		OrderType: d.OrderType,
-		OrderInfo: exchangetypes.OrderInfo{
-			SubaccountId: defaultSubaccountID.Hex(),
-			FeeRecipient: d.FeeRecipient,
-			Price:        orderPrice,
-			Quantity:     orderSize,
-		},
-	}
-}
-
-func (c *chainClient) DerivativeOrder(defaultSubaccountID eth.Hash, network common.Network, d *DerivativeOrderData) *exchangetypes.DerivativeOrder {
-
-	margin := cosmtypes.MustNewDecFromStr(fmt.Sprint(d.Quantity)).Mul(d.Price).Quo(d.Leverage)
-
-	if d.IsReduceOnly == true {
-		margin = cosmtypes.MustNewDecFromStr("0")
-	}
-
-	minPriceTickSize := common.LoadMetadata(network, d.MarketId).MinPriceTickSize
-	minQuantityTickSize := common.LoadMetadata(network, d.MarketId).MinQuantityTickSize
-
-	orderSize := GetDerivativeQuantity(d.Quantity, cosmtypes.MustNewDecFromStr(strconv.FormatFloat(minQuantityTickSize, 'f', -1, 64)))
-	orderPrice := GetDerivativePrice(d.Price, cosmtypes.MustNewDecFromStr(strconv.FormatFloat(minPriceTickSize, 'f', -1, 64)))
-	orderMargin := GetDerivativePrice(margin, cosmtypes.MustNewDecFromStr(strconv.FormatFloat(minPriceTickSize, 'f', -1, 64)))
-
-	return &exchangetypes.DerivativeOrder{
-		MarketId:  d.MarketId,
-		OrderType: d.OrderType,
-		Margin:    orderMargin,
-		OrderInfo: exchangetypes.OrderInfo{
-			SubaccountId: defaultSubaccountID.Hex(),
-			FeeRecipient: d.FeeRecipient,
-			Price:        orderPrice,
-			Quantity:     orderSize,
-		},
-	}
-}
-
-func (c *chainClient) OrderCancel(defaultSubaccountID eth.Hash, d *OrderCancelData) *exchangetypes.OrderData {
-	return &exchangetypes.OrderData{
-		MarketId:     d.MarketId,
-		OrderHash:    d.OrderHash,
-		SubaccountId: defaultSubaccountID.Hex(),
-	}
-}
-
 func (c *chainClient) GetAuthzGrants(ctx context.Context, req authztypes.QueryGrantsRequest) (*authztypes.QueryGrantsResponse, error) {
 	return c.authzQueryClient.Grants(ctx, &req)
 }
@@ -848,110 +750,6 @@ func (c *chainClient) BuildGenericAuthz(granter string, grantee string, msgtype 
 }
 
 type ExchangeAuthz string
-
-var (
-	CreateSpotLimitOrderAuthz       = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CreateSpotLimitOrderAuthz{}))
-	CreateSpotMarketOrderAuthz      = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CreateSpotMarketOrderAuthz{}))
-	BatchCreateSpotLimitOrdersAuthz = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.BatchCreateSpotLimitOrdersAuthz{}))
-	CancelSpotOrderAuthz            = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CancelSpotOrderAuthz{}))
-	BatchCancelSpotOrdersAuthz      = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.BatchCancelSpotOrdersAuthz{}))
-
-	CreateDerivativeLimitOrderAuthz       = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CreateDerivativeLimitOrderAuthz{}))
-	CreateDerivativeMarketOrderAuthz      = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CreateDerivativeMarketOrderAuthz{}))
-	BatchCreateDerivativeLimitOrdersAuthz = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.BatchCreateDerivativeLimitOrdersAuthz{}))
-	CancelDerivativeOrderAuthz            = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.CancelDerivativeOrderAuthz{}))
-	BatchCancelDerivativeOrdersAuthz      = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.BatchCancelDerivativeOrdersAuthz{}))
-
-	BatchUpdateOrdersAuthz = ExchangeAuthz("/" + proto.MessageName(&exchangetypes.BatchUpdateOrdersAuthz{}))
-)
-
-func (c *chainClient) BuildExchangeAuthz(granter string, grantee string, authzType ExchangeAuthz, subaccountId string, markets []string, expireIn time.Time) *authztypes.MsgGrant {
-	var typedAuthzAny codectypes.Any
-	var typedAuthzBytes []byte
-	switch authzType {
-	// spot msgs
-	case CreateSpotLimitOrderAuthz:
-		typedAuthz := &exchangetypes.CreateSpotLimitOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case CreateSpotMarketOrderAuthz:
-		typedAuthz := &exchangetypes.CreateSpotMarketOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case BatchCreateSpotLimitOrdersAuthz:
-		typedAuthz := &exchangetypes.BatchCreateSpotLimitOrdersAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case CancelSpotOrderAuthz:
-		typedAuthz := &exchangetypes.CancelSpotOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case BatchCancelSpotOrdersAuthz:
-		typedAuthz := &exchangetypes.BatchCancelSpotOrdersAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	// derivative msgs
-	case CreateDerivativeLimitOrderAuthz:
-		typedAuthz := &exchangetypes.CreateDerivativeLimitOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case CreateDerivativeMarketOrderAuthz:
-		typedAuthz := &exchangetypes.CreateDerivativeMarketOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case BatchCreateDerivativeLimitOrdersAuthz:
-		typedAuthz := &exchangetypes.BatchCreateDerivativeLimitOrdersAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case CancelDerivativeOrderAuthz:
-		typedAuthz := &exchangetypes.CancelDerivativeOrderAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	case BatchCancelDerivativeOrdersAuthz:
-		typedAuthz := &exchangetypes.BatchCancelDerivativeOrdersAuthz{
-			SubaccountId: subaccountId,
-			MarketIds:    markets,
-		}
-		typedAuthzBytes, _ = typedAuthz.Marshal()
-	// common msgs
-	case BatchUpdateOrdersAuthz:
-		panic("please use BuildExchangeBatchUpdateOrdersAuthz for BatchUpdateOrdersAuthz")
-	default:
-		panic("unsupported exchange authz type")
-	}
-
-	typedAuthzAny = codectypes.Any{
-		TypeUrl: string(authzType),
-		Value:   typedAuthzBytes,
-	}
-
-	return &authztypes.MsgGrant{
-		Granter: granter,
-		Grantee: grantee,
-		Grant: authztypes.Grant{
-			Authorization: &typedAuthzAny,
-			Expiration:    expireIn,
-		},
-	}
-}
 
 func (c *chainClient) SmartContractState(
 	ctx context.Context,
@@ -979,55 +777,4 @@ func (c *chainClient) RawContractState(
 			QueryData: queryData,
 		},
 	)
-}
-
-func (c *chainClient) BuildExchangeBatchUpdateOrdersAuthz(
-	granter string,
-	grantee string,
-	subaccountId string,
-	spotMarkets []string,
-	derivativeMarkets []string,
-	expireIn time.Time,
-) *authztypes.MsgGrant {
-	typedAuthz := &exchangetypes.BatchUpdateOrdersAuthz{
-		SubaccountId:      subaccountId,
-		SpotMarkets:       spotMarkets,
-		DerivativeMarkets: derivativeMarkets,
-	}
-	typedAuthzBytes, _ := typedAuthz.Marshal()
-	typedAuthzAny := codectypes.Any{
-		TypeUrl: string(BatchUpdateOrdersAuthz),
-		Value:   typedAuthzBytes,
-	}
-	return &authztypes.MsgGrant{
-		Granter: granter,
-		Grantee: grantee,
-		Grant: authztypes.Grant{
-			Authorization: &typedAuthzAny,
-			Expiration:    expireIn,
-		},
-	}
-}
-
-type DerivativeOrderData struct {
-	OrderType    exchangetypes.OrderType
-	Price        cosmtypes.Dec
-	Quantity     decimal.Decimal
-	Leverage     cosmtypes.Dec
-	FeeRecipient string
-	MarketId     string
-	IsReduceOnly bool
-}
-
-type SpotOrderData struct {
-	OrderType    exchangetypes.OrderType
-	Price        decimal.Decimal
-	Quantity     decimal.Decimal
-	FeeRecipient string
-	MarketId     string
-}
-
-type OrderCancelData struct {
-	MarketId  string
-	OrderHash string
 }

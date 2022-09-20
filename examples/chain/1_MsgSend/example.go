@@ -5,30 +5,26 @@ import (
 	"os"
 	"time"
 
-	"github.com/InjectiveLabs/sdk-go/client/common"
+	"github.com/gotabit/sdk-go/client/common"
 
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 )
 
 func main() {
-	// network := common.LoadNetwork("mainnet", "k8s")
-	network := common.LoadNetwork("testnet", "k8s")
-	tmRPC, err := rpchttp.New(network.TmEndpoint, "/websocket")
-
-	if err != nil {
-		fmt.Println(err)
-	}
+	// network := common.LoadNetwork("mainnet")
+	network := common.LoadNetwork("testnet")
+	rpc, err := rpchttp.New(network.GrpcEndpoint, "/websocket")
 
 	senderAddress, cosmosKeyring, err := chainclient.InitCosmosKeyring(
-		os.Getenv("HOME")+"/.injectived",
-		"injectived",
+		os.Getenv("HOME")+"/.gotabitd",
+		"gotabitd",
 		"file",
-		"inj-user",
-		"12345678",
-		"5d386fbdbf11f1141010f81a46b40f94887367562bd33b452bbaa6ce1cd1381e", // keyring will be used if pk not provided
+		"user",
+		"",
+		"actual accuse plastic supply favorite banner trial company cloud wasp enable cactus",
 		false,
 	)
 
@@ -46,29 +42,30 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
-	clientCtx = clientCtx.WithNodeURI(network.TmEndpoint).WithClient(tmRPC)
+	clientCtx = clientCtx.WithNodeURI(network.GrpcEndpoint).WithClient(rpc)
 
 	// prepare tx msg
 
 	msg := &banktypes.MsgSend{
 		FromAddress: senderAddress.String(),
-		ToAddress:   "inj1hkhdaj2a2clmq5jq6mspsggqs32vynpk228q3r",
+		ToAddress:   "gio1rmwwe2hge0lwzcu6ftmr547xsgjewqtdhehgte",
 		Amount: []sdktypes.Coin{{
-			Denom: "inj", Amount: sdktypes.NewInt(1000000000000000000)}, // 1 INJ
+			Denom: "ugtb", Amount: sdktypes.NewInt(600000000)}, // 100 ugtb
 		},
 	}
 
 	chainClient, err := chainclient.NewChainClient(
 		clientCtx,
-		network.ChainGrpcEndpoint,
-		common.OptionTLSCert(network.ChainTlsCert),
-		common.OptionGasPrices("500000000inj"),
+		network.GrpcEndpoint,
+		common.OptionGasPrices("500000000ugtb"),
 	)
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	//AsyncBroadcastMsg, SyncBroadcastMsg, QueueBroadcastMsg
@@ -76,6 +73,7 @@ func main() {
 
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	time.Sleep(time.Second * 5)
@@ -87,5 +85,5 @@ func main() {
 		return
 	}
 
-	fmt.Println("gas fee:", gasFee, "INJ")
+	fmt.Println("gas fee:", gasFee, "ugtb")
 }

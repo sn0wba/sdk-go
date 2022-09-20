@@ -1,4 +1,4 @@
-# Injective Protocol Golang SDK 🌟
+# Gotabit Golang SDK 🌟
 
 ---
 
@@ -7,7 +7,7 @@
 Clone the repository locally and install needed dependencies
 
 ```bash
-$ git clone git@github.com:InjectiveLabs/sdk-go.git
+$ git clone git@github.com:gotabit/sdk-go.git
 $ cd sdk-go
 $ go install ./...
 ```
@@ -26,16 +26,6 @@ go run examples/exchange/derivative_exchange_rpc/0_GetOrderbook.go
 
 ---
 
-## Updating Exchange API proto and client
-
-```bash
-$ make copy-exchange-client
-```
-
-(you have to clone [this repo](https://github.com/InjectiveLabs/injective-exchange) into `../injective-exchange`)
-
----
-
 ## Publishing Tagged Release
 
 ```bash
@@ -51,8 +41,7 @@ $ git push origin master --tags
 
 Reach out to us at one of the following places!
 
-- Website at <a href="https://injectiveprotocol.com" target="_blank">`injectiveprotocol.com`</a>
-- Twitter at <a href="https://twitter.com/InjectiveLabs" target="_blank">`@InjectiveLabs`</a>
+- Website at <a href="https://gotabit.org" target="_blank">`gotabit.org`</a>p
 
 ---
 

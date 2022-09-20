@@ -11,19 +11,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/pkg/errors"
 
-	keyscodec "github.com/InjectiveLabs/sdk-go/chain/crypto/codec"
-
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	auction "github.com/InjectiveLabs/sdk-go/chain/auction/types"
-	evm "github.com/InjectiveLabs/sdk-go/chain/evm/types"
-	exchange "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
-	insurance "github.com/InjectiveLabs/sdk-go/chain/insurance/types"
-	ocr "github.com/InjectiveLabs/sdk-go/chain/ocr/types"
-	oracle "github.com/InjectiveLabs/sdk-go/chain/oracle/types"
-	peggy "github.com/InjectiveLabs/sdk-go/chain/peggy/types"
-	chaintypes "github.com/InjectiveLabs/sdk-go/chain/types"
-	wasmx "github.com/InjectiveLabs/sdk-go/chain/wasmx/types"
+	chaintypes "github.com/gotabit/sdk-go/chain/types"
+	wasmx "github.com/gotabit/sdk-go/chain/wasmx/types"
 
 	cosmostypes "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -48,15 +39,7 @@ import (
 // NewTxConfig initializes new Cosmos TxConfig with certain signModes enabled.
 func NewTxConfig(signModes []signingtypes.SignMode) client.TxConfig {
 	interfaceRegistry := types.NewInterfaceRegistry()
-	keyscodec.RegisterInterfaces(interfaceRegistry)
 	std.RegisterInterfaces(interfaceRegistry)
-	exchange.RegisterInterfaces(interfaceRegistry)
-	oracle.RegisterInterfaces(interfaceRegistry)
-	insurance.RegisterInterfaces(interfaceRegistry)
-	auction.RegisterInterfaces(interfaceRegistry)
-	evm.RegisterInterfaces(interfaceRegistry)
-	peggy.RegisterInterfaces(interfaceRegistry)
-	ocr.RegisterInterfaces(interfaceRegistry)
 	wasmx.RegisterInterfaces(interfaceRegistry)
 	chaintypes.RegisterInterfaces(interfaceRegistry)
 
@@ -92,15 +75,7 @@ func NewClientContext(
 	clientCtx := client.Context{}
 
 	interfaceRegistry := types.NewInterfaceRegistry()
-	keyscodec.RegisterInterfaces(interfaceRegistry)
 	std.RegisterInterfaces(interfaceRegistry)
-	exchange.RegisterInterfaces(interfaceRegistry)
-	insurance.RegisterInterfaces(interfaceRegistry)
-	auction.RegisterInterfaces(interfaceRegistry)
-	oracle.RegisterInterfaces(interfaceRegistry)
-	evm.RegisterInterfaces(interfaceRegistry)
-	peggy.RegisterInterfaces(interfaceRegistry)
-	ocr.RegisterInterfaces(interfaceRegistry)
 	wasmx.RegisterInterfaces(interfaceRegistry)
 	chaintypes.RegisterInterfaces(interfaceRegistry)
 

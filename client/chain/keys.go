@@ -9,14 +9,11 @@ import (
 	"path/filepath"
 
 	cosmcrypto "github.com/cosmos/cosmos-sdk/crypto"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	cosmtypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/pkg/errors"
-
-	"github.com/InjectiveLabs/sdk-go/chain/crypto/ethsecp256k1"
-	"github.com/InjectiveLabs/sdk-go/chain/crypto/hd"
-	"github.com/InjectiveLabs/sdk-go/client/common"
 )
 
 const defaultKeyringKeyName = "validator"
@@ -29,53 +26,18 @@ func InitCosmosKeyring(
 	cosmosKeyringBackend string,
 	cosmosKeyFrom string,
 	cosmosKeyPassphrase string,
-	cosmosPrivKey string,
+	cosmosMnemonic string,
 	cosmosUseLedger bool,
 ) (cosmtypes.AccAddress, keyring.Keyring, error) {
 	switch {
-	case len(cosmosPrivKey) > 0:
-		if cosmosUseLedger {
-			err := errors.New("cannot combine ledger and privkey options")
-			return emptyCosmosAddress, nil, err
-		}
-
-		pkBytes, err := common.HexToBytes(cosmosPrivKey)
-		if err != nil {
-			err = errors.Wrap(err, "failed to hex-decode cosmos account privkey")
-			return emptyCosmosAddress, nil, err
-		}
-
-		// Specfic to Injective chain with Ethermint keys
-		// Should be secp256k1.PrivKey for generic Cosmos chain
-		cosmosAccPk := &ethsecp256k1.PrivKey{
-			Key: pkBytes,
-		}
-
-		addressFromPk := cosmtypes.AccAddress(cosmosAccPk.PubKey().Address().Bytes())
-
+	case len(cosmosMnemonic) > 0:
 		var keyName string
-
-		// check that if cosmos 'From' specified separately, it must match the provided privkey,
-		if len(cosmosKeyFrom) > 0 {
-			addressFrom, err := cosmtypes.AccAddressFromBech32(cosmosKeyFrom)
-			if err == nil {
-				if !bytes.Equal(addressFrom.Bytes(), addressFromPk.Bytes()) {
-					err = errors.Errorf("expected account address %s but got %s from the private key", addressFrom.String(), addressFromPk.String())
-					return emptyCosmosAddress, nil, err
-				}
-			} else {
-				// use it as a name then
-				keyName = cosmosKeyFrom
-			}
-		}
 
 		if len(keyName) == 0 {
 			keyName = defaultKeyringKeyName
 		}
 
-		// wrap a PK into a Keyring
-		kb, err := KeyringForPrivKey(keyName, cosmosAccPk)
-		return addressFromPk, kb, err
+		return KeyringForMnemonic(keyName, cosmosMnemonic)
 
 	case len(cosmosKeyFrom) > 0:
 		var fromIsAddress bool
@@ -101,7 +63,6 @@ func InitCosmosKeyring(
 			cosmosKeyringBackend,
 			absoluteKeyringDir,
 			passReader,
-			hd.EthSecp256k1Option(),
 		)
 		if err != nil {
 			err = errors.Wrap(err, "failed to init keyring")
@@ -178,7 +139,7 @@ func (r *passReader) Read(p []byte) (n int, err error) {
 // KeyringForPrivKey creates a temporary in-mem keyring for a PrivKey.
 // Allows to init Context when the key has been provided in plaintext and parsed.
 func KeyringForPrivKey(name string, privKey cryptotypes.PrivKey) (keyring.Keyring, error) {
-	kb := keyring.NewInMemory(hd.EthSecp256k1Option())
+	kb := keyring.NewInMemory()
 	tmpPhrase := randPhrase(64)
 	armored := cosmcrypto.EncryptArmorPrivKey(privKey, tmpPhrase, privKey.Type())
 	err := kb.ImportPrivKey(name, armored, tmpPhrase)
@@ -188,6 +149,17 @@ func KeyringForPrivKey(name string, privKey cryptotypes.PrivKey) (keyring.Keyrin
 	}
 
 	return kb, nil
+}
+
+func KeyringForMnemonic(name, mnemonic string) (cosmtypes.AccAddress, keyring.Keyring, error) {
+	kb := keyring.NewInMemory()
+	info, err := kb.NewAccount(name, mnemonic, "", "m/44'/118'/0'/0/0", hd.Secp256k1)
+	if err != nil {
+		err = errors.Wrap(err, "failed to import privkey")
+		return emptyCosmosAddress, nil, err
+	}
+
+	return info.GetAddress(), kb, nil
 }
 
 func randPhrase(size int) string {

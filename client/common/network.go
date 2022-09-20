@@ -2,25 +2,19 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"path"
 	"runtime"
 	"strings"
-
-	"google.golang.org/grpc/credentials"
 )
 
 type Network struct {
-	LcdEndpoint          string
-	TmEndpoint           string
-	ChainGrpcEndpoint    string
-	ChainTlsCert         credentials.TransportCredentials
-	ExchangeGrpcEndpoint string
-	ExchangeTlsCert      credentials.TransportCredentials
-	ChainId              string
-	Fee_denom            string
-	Name                 string
+	GrpcEndpoint string
+	ChainId      string
+	Name         string
+	RestEndpoint string
+	Denom        string
+	Decimals     int
 }
 
 func getFileAbsPath(relativePath string) string {
@@ -28,106 +22,28 @@ func getFileAbsPath(relativePath string) string {
 	return path.Join(path.Dir(filename), relativePath)
 }
 
-func LoadNetwork(name string, node string) Network {
-	if name == "devnet-1" {
+func LoadNetwork(name string) Network {
+	if name == "testnet" {
 		return Network{
-			LcdEndpoint:          "https://devnet-1.lcd.injective.dev",
-			TmEndpoint:           "https://devnet-1.tm.injective.dev:443",
-			ChainGrpcEndpoint:    "tcp://devnet-1.grpc.injective.dev:9900",
-			ExchangeGrpcEndpoint: "tcp://devnet-1.api.injective.dev:9910",
-			ChainId:              "injective-777",
-			Fee_denom:            "inj",
-			Name:                 "devnet-1",
-		}
-	} else if name == "devnet" {
-		return Network{
-			LcdEndpoint:          "https://devnet.lcd.injective.dev",
-			TmEndpoint:           "https://devnet.tm.injective.dev:443",
-			ChainGrpcEndpoint:    "tcp://devnet.injective.dev:9900",
-			ExchangeGrpcEndpoint: "tcp://devnet.injective.dev:9910",
-			ChainId:              "injective-777",
-			Fee_denom:            "inj",
-			Name:                 "devnet",
-		}
-	} else if name == "testnet" {
-		validNodes := []string{"sentry0", "sentry1", "k8s"}
-		if !contains(validNodes, node) {
-			panic(fmt.Sprintf("invalid node %s for %s", node, name))
-		}
-
-		var lcdEndpoint, tmEndpoint, chainGrpcEndpoint, exchangeGrpcEndpoint string
-		var chainTlsCert, exchangeTlsCert credentials.TransportCredentials
-		if node == "k8s" {
-			certPath := getFileAbsPath("../cert/testnet.crt")
-			lcdEndpoint = "https://k8s.testnet.lcd.injective.network"
-			tmEndpoint = "https://k8s.testnet.tm.injective.network:443"
-			chainGrpcEndpoint = "tcp://k8s.testnet.chain.grpc.injective.network:443"
-			chainTlsCert = LoadTlsCert(certPath, chainGrpcEndpoint)
-			exchangeGrpcEndpoint = "tcp://k8s.testnet.exchange.grpc.injective.network:443"
-			exchangeTlsCert = LoadTlsCert(certPath, exchangeGrpcEndpoint)
-		} else {
-			lcdEndpoint = fmt.Sprintf("http://%s.injective.dev:10337", node)
-			tmEndpoint = fmt.Sprintf("http://%s.injective.dev:26657", node)
-			chainGrpcEndpoint = fmt.Sprintf("tcp://%s.injective.dev:9900", node)
-			exchangeGrpcEndpoint = fmt.Sprintf("tcp://%s.injective.dev:9910", node)
-		}
-
-		return Network{
-			LcdEndpoint:          lcdEndpoint,
-			TmEndpoint:           tmEndpoint,
-			ChainGrpcEndpoint:    chainGrpcEndpoint,
-			ChainTlsCert:         chainTlsCert,
-			ExchangeGrpcEndpoint: exchangeGrpcEndpoint,
-			ExchangeTlsCert:      exchangeTlsCert,
-			ChainId:              "injective-888",
-			Fee_denom:            "inj",
-			Name:                 "testnet",
+			GrpcEndpoint: "https://rpc-testnet.gotabit.dev:443",
+			ChainId:      "gotabit-test-1",
+			Name:         "GotaBit-test",
+			RestEndpoint: "https://rest-testnet.gotabit.dev:443",
+			Denom:        "ugtb",
+			Decimals:     6,
 		}
 	} else if name == "mainnet" {
-		validNodes := []string{"k8s", "lb", "sentry0", "sentry1", "sentry2", "sentry3"}
-		if !contains(validNodes, node) {
-			panic(fmt.Sprintf("invalid node %s for %s", node, name))
-		}
-		var lcdEndpoint, tmEndpoint, chainGrpcEndpoint, exchangeGrpcEndpoint string
-		var chainTlsCert, exchangeTlsCert credentials.TransportCredentials
-		if node == "k8s" || node == "lb" {
-			certPath := getFileAbsPath("../cert/mainnet.crt")
-			lcdEndpoint = fmt.Sprintf("https://%s.mainnet.lcd.injective.network", node)
-			tmEndpoint = fmt.Sprintf("https://%s.mainnet.tm.injective.network:443", node)
-			chainGrpcEndpoint = fmt.Sprintf("tcp://%s.mainnet.chain.grpc.injective.network:443", node)
-			chainTlsCert = LoadTlsCert(certPath, chainGrpcEndpoint)
-			exchangeGrpcEndpoint = fmt.Sprintf("tcp://%s.mainnet.exchange.grpc.injective.network:443", node)
-			exchangeTlsCert = LoadTlsCert(certPath, exchangeGrpcEndpoint)
-		} else {
-			lcdEndpoint = fmt.Sprintf("http://%s.injective.network:10337", node)
-			tmEndpoint = fmt.Sprintf("http://%s.injective.network:26657", node)
-			chainGrpcEndpoint = fmt.Sprintf("tcp://%s.injective.network:9900", node)
-			exchangeGrpcEndpoint = fmt.Sprintf("tcp://%s.injective.network:9910", node)
-		}
-
 		return Network{
-			LcdEndpoint:          lcdEndpoint,
-			TmEndpoint:           tmEndpoint,
-			ChainGrpcEndpoint:    chainGrpcEndpoint,
-			ChainTlsCert:         chainTlsCert,
-			ExchangeGrpcEndpoint: exchangeGrpcEndpoint,
-			ExchangeTlsCert:      exchangeTlsCert,
-			ChainId:              "injective-1",
-			Fee_denom:            "inj",
-			Name:                 "mainnet",
+			GrpcEndpoint: "https://rpc.gotabit.dev:443",
+			ChainId:      "gotabit-alpha",
+			Name:         "GotaBit",
+			RestEndpoint: "https://rest.gotabit.dev:443",
+			Denom:        "ugtb",
+			Decimals:     6,
 		}
 	}
 
 	return Network{}
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 func DialerFunc(ctx context.Context, addr string) (net.Conn, error) {

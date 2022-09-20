@@ -1,10 +1,10 @@
 package common
 
 import (
-	ctypes "github.com/InjectiveLabs/sdk-go/chain/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/pkg/errors"
 	log "github.com/InjectiveLabs/suplog"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ctypes "github.com/gotabit/sdk-go/chain/types"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc/credentials"
 )
 
