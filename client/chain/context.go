@@ -15,13 +15,6 @@ import (
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
-	auction "github.com/gotabit/sdk-go/chain/auction/types"
-	evm "github.com/gotabit/sdk-go/chain/evm/types"
-	exchange "github.com/gotabit/sdk-go/chain/exchange/types"
-	insurance "github.com/gotabit/sdk-go/chain/insurance/types"
-	ocr "github.com/gotabit/sdk-go/chain/ocr/types"
-	oracle "github.com/gotabit/sdk-go/chain/oracle/types"
-	peggy "github.com/gotabit/sdk-go/chain/peggy/types"
 	chaintypes "github.com/gotabit/sdk-go/chain/types"
 	wasmx "github.com/gotabit/sdk-go/chain/wasmx/types"
 
@@ -50,13 +43,6 @@ func NewTxConfig(signModes []signingtypes.SignMode) client.TxConfig {
 	interfaceRegistry := types.NewInterfaceRegistry()
 	keyscodec.RegisterInterfaces(interfaceRegistry)
 	std.RegisterInterfaces(interfaceRegistry)
-	exchange.RegisterInterfaces(interfaceRegistry)
-	oracle.RegisterInterfaces(interfaceRegistry)
-	insurance.RegisterInterfaces(interfaceRegistry)
-	auction.RegisterInterfaces(interfaceRegistry)
-	evm.RegisterInterfaces(interfaceRegistry)
-	peggy.RegisterInterfaces(interfaceRegistry)
-	ocr.RegisterInterfaces(interfaceRegistry)
 	wasmx.RegisterInterfaces(interfaceRegistry)
 	chaintypes.RegisterInterfaces(interfaceRegistry)
 
@@ -94,13 +80,6 @@ func NewClientContext(
 	interfaceRegistry := types.NewInterfaceRegistry()
 	keyscodec.RegisterInterfaces(interfaceRegistry)
 	std.RegisterInterfaces(interfaceRegistry)
-	exchange.RegisterInterfaces(interfaceRegistry)
-	insurance.RegisterInterfaces(interfaceRegistry)
-	auction.RegisterInterfaces(interfaceRegistry)
-	oracle.RegisterInterfaces(interfaceRegistry)
-	evm.RegisterInterfaces(interfaceRegistry)
-	peggy.RegisterInterfaces(interfaceRegistry)
-	ocr.RegisterInterfaces(interfaceRegistry)
 	wasmx.RegisterInterfaces(interfaceRegistry)
 	chaintypes.RegisterInterfaces(interfaceRegistry)
 
