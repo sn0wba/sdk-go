@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/InjectiveLabs/sdk-go/client/common"
-	exchangeclient "github.com/InjectiveLabs/sdk-go/client/exchange"
-	accountPB "github.com/InjectiveLabs/sdk-go/exchange/accounts_rpc/pb"
+	"github.com/gotabit/sdk-go/client/common"
+	exchangeclient "github.com/gotabit/sdk-go/client/exchange"
+	accountPB "github.com/gotabit/sdk-go/exchange/accounts_rpc/pb"
 )
 
 func main() {

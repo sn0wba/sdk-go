@@ -9,8 +9,8 @@ import (
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/tyler-smith/go-bip39"
 
-	"github.com/InjectiveLabs/sdk-go/chain/crypto/ethsecp256k1"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/gotabit/sdk-go/chain/crypto/ethsecp256k1"
 )
 
 const (

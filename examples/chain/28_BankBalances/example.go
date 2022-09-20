@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
-	"github.com/InjectiveLabs/sdk-go/client/common"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
+	"github.com/gotabit/sdk-go/client/common"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"os"
 )

@@ -8,9 +8,9 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 
-	"github.com/InjectiveLabs/sdk-go/chain/types"
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
-	"github.com/InjectiveLabs/sdk-go/client/common"
+	"github.com/gotabit/sdk-go/chain/types"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
+	"github.com/gotabit/sdk-go/client/common"
 )
 
 func main() {

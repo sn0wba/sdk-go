@@ -5,13 +5,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/InjectiveLabs/sdk-go/client/common"
+	"github.com/gotabit/sdk-go/client/common"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 
-	exchangetypes "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
+	exchangetypes "github.com/gotabit/sdk-go/chain/exchange/types"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
 )
 
 func main() {

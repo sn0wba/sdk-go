@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	exchangetypes "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
-	"github.com/InjectiveLabs/sdk-go/client/common"
 	cosmtypes "github.com/cosmos/cosmos-sdk/types"
+	exchangetypes "github.com/gotabit/sdk-go/chain/exchange/types"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
+	"github.com/gotabit/sdk-go/client/common"
 	"github.com/shopspring/decimal"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 )

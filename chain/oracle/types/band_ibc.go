@@ -1,9 +1,9 @@
 package types
 
 import (
-	bandprice "github.com/InjectiveLabs/sdk-go/bandchain/hooks/price"
 	bandobi "github.com/bandprotocol/bandchain-packet/obi"
 	bandPacket "github.com/bandprotocol/bandchain-packet/packet"
+	bandprice "github.com/gotabit/sdk-go/bandchain/hooks/price"
 )
 
 func NewOracleRequestPacketData(clientID string, calldata []byte, r *BandOracleRequest) bandPacket.OracleRequestPacketData {

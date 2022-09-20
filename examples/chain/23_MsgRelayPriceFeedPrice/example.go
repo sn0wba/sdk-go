@@ -5,11 +5,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/InjectiveLabs/sdk-go/client/common"
+	"github.com/gotabit/sdk-go/client/common"
 
-	oracletypes "github.com/InjectiveLabs/sdk-go/chain/oracle/types"
-	chainclient "github.com/InjectiveLabs/sdk-go/client/chain"
 	cosmtypes "github.com/cosmos/cosmos-sdk/types"
+	oracletypes "github.com/gotabit/sdk-go/chain/oracle/types"
+	chainclient "github.com/gotabit/sdk-go/client/chain"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 )
 

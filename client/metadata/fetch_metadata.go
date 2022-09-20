@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/InjectiveLabs/sdk-go/client/common"
-	exchangeclient "github.com/InjectiveLabs/sdk-go/client/exchange"
-	derivativeExchangePB "github.com/InjectiveLabs/sdk-go/exchange/derivative_exchange_rpc/pb"
+	"github.com/gotabit/sdk-go/client/common"
+	exchangeclient "github.com/gotabit/sdk-go/client/exchange"
+	derivativeExchangePB "github.com/gotabit/sdk-go/exchange/derivative_exchange_rpc/pb"
 	"os"
 
-	//derivativeExchangePB "github.com/InjectiveLabs/sdk-go/exchange/derivative_exchange_rpc/pb"
-	spotExchangePB "github.com/InjectiveLabs/sdk-go/exchange/spot_exchange_rpc/pb"
+	//derivativeExchangePB "github.com/gotabit/sdk-go/exchange/derivative_exchange_rpc/pb"
+	spotExchangePB "github.com/gotabit/sdk-go/exchange/spot_exchange_rpc/pb"
 	"math"
 	"strconv"
 )

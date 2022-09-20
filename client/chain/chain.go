@@ -16,8 +16,6 @@ import (
 	"time"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	exchangetypes "github.com/InjectiveLabs/sdk-go/chain/exchange/types"
-	"github.com/InjectiveLabs/sdk-go/client/common"
 	log "github.com/InjectiveLabs/suplog"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -30,6 +28,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	eth "github.com/ethereum/go-ethereum/common"
 	"github.com/gogo/protobuf/proto"
+	exchangetypes "github.com/gotabit/sdk-go/chain/exchange/types"
+	"github.com/gotabit/sdk-go/client/common"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"google.golang.org/grpc"
@@ -473,9 +473,9 @@ func (c *chainClient) SimulateMsg(clientCtx client.Context, msgs ...sdk.Msg) (*t
 	return simRes, nil
 }
 
-//AsyncBroadcastMsg sends Tx to chain and doesn't wait until Tx is included in block. This method
-//cannot be used for rapid Tx sending, it is expected that you wait for transaction status with
-//external tools. If you want sdk to wait for it, use SyncBroadcastMsg.
+// AsyncBroadcastMsg sends Tx to chain and doesn't wait until Tx is included in block. This method
+// cannot be used for rapid Tx sending, it is expected that you wait for transaction status with
+// external tools. If you want sdk to wait for it, use SyncBroadcastMsg.
 func (c *chainClient) AsyncBroadcastMsg(msgs ...sdk.Msg) (*txtypes.BroadcastTxResponse, error) {
 	c.syncMux.Lock()
 	defer c.syncMux.Unlock()
@@ -604,8 +604,8 @@ func (c *chainClient) broadcastTx(
 	}
 }
 
-//QueueBroadcastMsg enqueues a list of messages. Messages will added to the queue
-//and grouped into Txns in chunks. Use this method to mass broadcast Txns with efficiency.
+// QueueBroadcastMsg enqueues a list of messages. Messages will added to the queue
+// and grouped into Txns in chunks. Use this method to mass broadcast Txns with efficiency.
 func (c *chainClient) QueueBroadcastMsg(msgs ...sdk.Msg) error {
 	if !c.canSign {
 		return ErrReadOnly

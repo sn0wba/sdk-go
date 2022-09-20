@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/InjectiveLabs/sdk-go/client/common"
-	tmclient "github.com/InjectiveLabs/sdk-go/client/tm"
+	"github.com/gotabit/sdk-go/client/common"
+	tmclient "github.com/gotabit/sdk-go/client/tm"
 )
 
 func main() {

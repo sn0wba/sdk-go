@@ -16,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/pkg/errors"
 
-	"github.com/InjectiveLabs/sdk-go/typeddata"
+	"github.com/gotabit/sdk-go/typeddata"
 )
 
 // WrapTxToEIP712 is an ultimate method that wraps Amino-encoded Cosmos Tx JSON data

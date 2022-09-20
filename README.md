@@ -7,7 +7,7 @@
 Clone the repository locally and install needed dependencies
 
 ```bash
-$ git clone git@github.com:InjectiveLabs/sdk-go.git
+$ git clone git@github.com:gotabit/sdk-go.git
 $ cd sdk-go
 $ go install ./...
 ```

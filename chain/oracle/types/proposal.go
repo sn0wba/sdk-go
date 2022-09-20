@@ -7,9 +7,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	bandprice "github.com/InjectiveLabs/sdk-go/bandchain/hooks/price"
-	bandoracle "github.com/InjectiveLabs/sdk-go/bandchain/oracle/types"
 	bandobi "github.com/bandprotocol/bandchain-packet/obi"
+	bandprice "github.com/gotabit/sdk-go/bandchain/hooks/price"
+	bandoracle "github.com/gotabit/sdk-go/bandchain/oracle/types"
 )
 
 // constants
